@@ -2,127 +2,356 @@
 <html lang="he" dir="rtl">
 <head>
   <meta charset="UTF-8">
-  <title>Tapash - בדיקות עמדות אש</title>
+  <title>Tapash - ניהול בדיקות אש</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
   <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/11.9.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/11.9.0/firebase-firestore-compat.js"></script>
   <!-- html5-qrcode לסריקת QR -->
   <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
-  <!-- אייקונים -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+  <!-- אייקונים (Font Awesome) -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
   <style>
+    /* --- הגדרות עיצוב גלובליות --- */
+    :root {
+      --primary-color: #0077b6;
+      --secondary-color: #4fd1c5;
+      --action-color-start: #43e97b;
+      --action-color-end: #38f9d7;
+      --text-light: #fff;
+      --text-dark: #004d7a;
+      --bg-light: #f7fcfe;
+      --bg-white: #ffffff;
+      --border-color: #b5e4e3;
+      --success-color: #27b254;
+      --success-bg: #defde0;
+      --error-color: #ec5050;
+      --error-bg: #ffe7df;
+      --note-color: #1976d2;
+      --note-bg: #e2f0fb;
+      --shadow-color: rgba(20, 80, 150, 0.17);
+      --font-main: 'Heebo', 'Segoe UI', Arial, sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
     body {
-      background: linear-gradient(120deg, #4fd1c5 0%, #0077b6 100%);
-      font-family: 'Heebo', 'Segoe UI', Arial, sans-serif;
-      min-height: 100vh; margin: 0; padding: 0;
+      background: linear-gradient(135deg, var(--secondary-color), var(--primary-color));
+      background-size: 200% 200%;
+      font-family: var(--font-main);
+      min-height: 100vh;
+      animation: gradient-animation 15s ease infinite;
     }
+
+    @keyframes gradient-animation {
+      0%   { background-position: 0% 50%; }
+      50%  { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
     .container {
-      max-width: 620px; margin: 56px auto 0 auto; background: rgba(255,255,255,0.98);
-      border-radius: 18px; box-shadow: 0 12px 46px 0 rgba(20,80,150,0.17);
-      padding: 38px 27px 36px 27px;
+      max-width: 700px;
+      margin: 3rem auto 2rem auto;
+      background: rgba(255, 255, 255, 0.99);
+      border-radius: 20px;
+      box-shadow: 0 15px 50px var(--shadow-color);
+      padding: 40px 30px;
+      transition: all 0.3s ease;
     }
+
     h1 {
       text-align: center;
-      color: #0077b6;
-      font-size: 2.1rem;
-      margin-bottom: 32px;
+      color: var(--primary-color);
+      font-size: 2.3rem;
+      margin-bottom: 2.5rem;
       letter-spacing: 1px;
       font-weight: 700;
-      text-shadow: 0 2px 13px #d9fbf1a0;
+      text-shadow: 0 2px 15px rgba(217, 251, 241, 0.63);
     }
-    .btn-main {
+    h1 .brand-accent {
+      font-size: 0.7em;
+      color: var(--action-color-start);
+      font-weight: 600;
+    }
+
+    .btn {
       width: 100%;
-      background: linear-gradient(90deg, #43e97b 0%, #38f9d7 100%);
-      color: #11477a;
       border: none;
-      border-radius: 11px;
+      border-radius: 12px;
       font-size: 1.25em;
       font-weight: 700;
-      padding: 20px 0;
-      margin: 0 auto 28px auto;
-      display: block;
-      transition: 0.15s;
-      box-shadow: 0 5px 17px 0 #25c6a322;
+      padding: 18px 0;
+      margin-bottom: 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      transition: all 0.2s ease-out;
       cursor: pointer;
       letter-spacing: 1px;
     }
-    .btn-main:active { transform: scale(0.99);}
+    .btn:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 20px 0 rgba(37, 198, 163, 0.22);
+    }
+    .btn:active {
+      transform: scale(0.98) translateY(-1px);
+    }
+
+    .btn-main {
+      background: linear-gradient(90deg, var(--action-color-start) 0%, var(--action-color-end) 100%);
+      color: var(--text-dark);
+      box-shadow: 0 5px 17px 0 rgba(37, 198, 163, 0.15);
+    }
+    
+    .btn-secondary {
+        background: var(--primary-color);
+        color: var(--text-light);
+        font-size: 1.1em;
+        padding: 15px 0;
+        margin-top: 1rem;
+        box-shadow: 0 5px 17px 0 rgba(0, 119, 182, 0.15);
+    }
+    .btn-secondary:hover {
+        box-shadow: 0 8px 20px 0 rgba(0, 119, 182, 0.22);
+    }
+
     .stations-table {
       width: 100%;
-      margin-top: 16px;
+      margin-top: 1rem;
       border-collapse: separate;
-      border-spacing: 0 13px;
+      border-spacing: 0 14px;
     }
     .stations-table th, .stations-table td {
       text-align: center;
-      font-size: 1.06em;
-      padding: 15px 6px;
-      background: #f7fcfe;
-      border-radius: 9px;
-      border: none;
-      box-shadow: 0 2px 12px #46e7e21a;
+      font-size: 1.08em;
+      padding: 16px 8px;
+      background: var(--bg-light);
+      border-radius: 10px;
     }
-    .stations-table th { background: none; color: #0077b6; font-weight: 700; font-size: 1.1em; }
+    .stations-table th {
+      background: none;
+      color: var(--primary-color);
+      font-weight: 700;
+      font-size: 1.12em;
+    }
+
     .station-action-btn {
       background: linear-gradient(90deg, #0093e9 0%, #80d0c7 100%);
-      color: #fff;
+      color: var(--text-light);
       border: none;
       border-radius: 8px;
-      padding: 9px 13px;
-      font-size: 1.13em;
+      padding: 10px 15px;
+      font-size: 1.1em;
       font-weight: 600;
       cursor: pointer;
-      transition: 0.13s;
-      box-shadow: 0 1.5px 7px 0 #77c7ef21;
+      transition: all 0.15s ease;
+      box-shadow: 0 2px 8px 0 rgba(119, 199, 239, 0.13);
       display: inline-flex;
       align-items: center;
-      gap: 5px;
+      gap: 6px;
     }
     .station-action-btn.edit {
       background: linear-gradient(90deg, #ffe259 0%, #ffa751 100%);
       color: #424242;
     }
-    .station-action-btn:active { transform: scale(0.97);}
+    .station-action-btn:hover { transform: scale(1.05); }
+    .station-action-btn:active { transform: scale(0.97); }
+
     .status-chip {
-      font-weight: 700; font-size: 1.06em; padding: 7px 15px; border-radius: 22px;
-      display: inline-flex; align-items: center; gap: 6px;
-      margin: 0 6px;
+      font-weight: 700; 
+      font-size: 1.06em; 
+      padding: 7px 15px; 
+      border-radius: 25px;
+      display: inline-flex; 
+      align-items: center; 
+      gap: 6px;
+      margin: 0 4px; 
+      border: 1.5px solid;
     }
-    .status-ok {
-      background: #defde0; color: #27b254; border: 1.4px solid #21b56e;
+    .status-ok { background: var(--success-bg); color: var(--success-color); border-color: var(--success-color); }
+    .status-bad { background: var(--error-bg); color: var(--error-color); border-color: var(--error-color); }
+    .status-note { background: var(--note-bg); color: var(--note-color); border-color: var(--note-color); }
+
+    .modal-bg {
+      display: none; 
+      position: fixed; 
+      top: 0; 
+      right: 0; 
+      left: 0; 
+      bottom: 0;
+      background: rgba(40, 74, 100, 0.3); 
+      z-index: 999;
+      align-items: center; 
+      justify-content: center;
+      backdrop-filter: blur(4px);
+      opacity: 0; 
+      transition: opacity 0.3s ease;
     }
-    .status-bad {
-      background: #ffe7df; color: #ec5050; border: 1.4px solid #d64545;
+    .modal-bg.active {
+      display: flex; 
+      opacity: 1;
     }
-    .status-note {
-      background: #e2f0fb; color: #1976d2; border: 1.4px solid #31a2d9;
+    .modal {
+      background: var(--bg-white); 
+      border-radius: 18px; 
+      padding: 35px 28px;
+      width: 90%; 
+      max-width: 400px;
+      box-shadow: 0 5px 35px rgba(23, 107, 226, 0.27);
+      transform: scale(0.95);
+      transition: transform 0.3s ease;
     }
-    .modal-bg { display: none; position: fixed; top:0; right:0; left:0; bottom:0; background: rgba(40,74,100,0.19); z-index: 999; align-items: center; justify-content: center;}
-    .modal-bg.active { display: flex; }
-    .modal { background: #fff; border-radius: 16px; padding: 32px 24px 24px 24px; min-width: 290px; max-width: 99vw; box-shadow: 0 3px 30px #176be244;}
-    .modal h3 { text-align: center; color: #0077b6; font-size: 1.2em;}
-    .modal label { margin-top: 11px; display: block;}
+    .modal-bg.active .modal { transform: scale(1); }
+
+    .modal h3 { 
+      text-align: center; 
+      color: var(--primary-color); 
+      font-size: 1.4em; 
+      margin-bottom: 1.5rem; 
+    }
+    .modal label { 
+      margin-top: 12px; 
+      display: block; 
+      font-weight: 600; 
+      color: var(--text-dark); 
+    }
     .modal input, .modal select, .modal textarea {
-      width: 100%; margin-top: 4px; margin-bottom: 11px; padding: 9px;
-      border-radius: 6px; border: 1.2px solid #b5e4e3; font-size: 1.06em;
-      background: #f7fcfe;
+      width: 100%; 
+      margin-top: 5px; 
+      margin-bottom: 12px; 
+      padding: 10px;
+      border-radius: 8px; 
+      border: 1.5px solid var(--border-color); 
+      font-size: 1.06em;
+      background: var(--bg-light);
     }
-    .modal .btns { margin-top: 16px; text-align: center;}
-    .modal .btns button { margin: 0 7px;}
+    .modal input:focus, .modal select:focus, .modal textarea:focus {
+        outline: none;
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 3px rgba(0, 119, 182, 0.2);
+    }
+
+    .modal .btns { 
+      margin-top: 1.5rem; 
+      display: flex; 
+      justify-content: center; 
+      gap: 15px; 
+    }
+    .modal .btns button {
+        border: none; 
+        border-radius: 8px; 
+        padding: 10px 25px; 
+        font-size: 1.1em; 
+        font-weight: 600; 
+        cursor: pointer; 
+        transition: all 0.2s ease;
+    }
+    .modal .btns button[type="submit"] { 
+      background: var(--success-color); 
+      color: var(--text-light); 
+    }
+    .modal .btns button[type="button"] { 
+      background: #eee; 
+      color: #555; 
+    }
+    .modal .btns button:hover { 
+      transform: translateY(-2px); 
+    }
+
     #qr-modal { z-index: 2000; }
-    #qr-reader { margin: 0 auto; width: 270px;}
-    #qr-error { color: #a61d1d; text-align: center; font-size: 1.09em; margin: 8px 0 0 0;}
+    #qr-reader { 
+      margin: 0 auto; 
+      width: 100%; 
+      max-width: 270px; 
+      border-radius: 10px; 
+      overflow: hidden; 
+    }
+    #qr-error { 
+      color: #a61d1d; 
+      text-align: center; 
+      font-size: 1.1em; 
+      margin-top: 1rem; 
+      font-weight: 600; 
+    }
+    
+    /* --- עיצוב חדש לדוח --- */
+    #report-modal .modal {
+        max-width: 650px; /* רחב יותר כדי להכיל את הטבלה */
+    }
+    #report-header {
+        text-align: center;
+        margin-bottom: 1.5rem;
+    }
+    #report-date {
+        font-size: 1.5em;
+        color: var(--primary-color);
+        font-weight: 700;
+    }
+    #report-day {
+        font-size: 1.1em;
+        color: var(--text-dark);
+    }
+    #report-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 1rem;
+    }
+    #report-table th, #report-table td {
+        border: 1px solid #ddd;
+        padding: 12px;
+        text-align: center;
+    }
+    #report-table th {
+        background-color: var(--note-bg);
+        color: var(--note-color);
+        font-weight: 700;
+    }
+
+    /* התאמה למסכים קטנים */
     @media (max-width: 630px) {
-      .container { max-width: 99vw; padding: 12vw 2vw 7vw 2vw;}
-      h1 { font-size: 1.29rem; }
+      .container { 
+        padding: 25px 15px; 
+        margin: 1.5rem auto; 
+      }
+      h1 { 
+        font-size: 1.8rem; 
+        margin-bottom: 1.8rem; 
+      }
+      .btn { 
+        padding: 16px 0; 
+        font-size: 1.15em; 
+      }
+      .stations-table th, .stations-table td { 
+        font-size: 0.95em; 
+        padding: 12px 5px;
+      }
+      .status-chip { 
+        font-size: 0.9em; 
+        padding: 6px 12px; 
+      }
+      .modal { 
+        padding: 25px 20px; 
+      }
+      .modal h3 { 
+        font-size: 1.25em; 
+      }
     }
   </style>
 </head>
 <body>
   <div class="container">
-    <h1>Tapash <span style="font-size:0.7em;color:#43e97b">| ניהול בדיקות אש</span></h1>
-    <button id="start-btn" class="btn-main"><i class="fa-solid fa-play"></i> התחל בדיקה שבועית</button>
+    <h1>Tapash <span class="brand-accent">| ניהול בדיקות אש</span></h1>
+    <button id="start-btn" class="btn btn-main">
+      <i class="fa-solid fa-play"></i> התחל בדיקה שבועית
+    </button>
+    
     <div id="stationsBlock" style="display:none;">
       <table class="stations-table" id="stationsTable">
         <thead>
@@ -134,6 +363,9 @@
         </thead>
         <tbody id="stationsBody"></tbody>
       </table>
+      <button id="create-report-btn" class="btn btn-secondary">
+        <i class="fa-solid fa-file-invoice"></i> צור דוח יומי
+      </button>
     </div>
   </div>
 
@@ -142,21 +374,24 @@
     <div class="modal">
       <form id="modalForm">
         <h3 id="modalTitle"></h3>
-        <label>תאריך:</label>
-        <input type="text" id="modalDate" readonly>
-        <label>שם קב"ט:</label>
+        <!-- השדות החבויים חשובים עבור הנתונים שנשמרים -->
+        <input type="hidden" id="modalDate">
+        <input type="hidden" id="modalStation">
+        
+        <label for="modalInspector">שם קב"ט:</label>
         <input type="text" id="modalInspector" required>
-        <label>עמדה:</label>
-        <input type="text" id="modalStation" readonly>
-        <label>תקינות:</label>
-        <select id="modalStatus">
+        
+        <label for="modalStatus">תקינות:</label>
+        <select id="modalStatus" required>
           <option value="כן">כן</option>
           <option value="לא">לא</option>
         </select>
-        <label>הערות:</label>
-        <textarea id="modalNotes" rows="2"></textarea>
+        
+        <label for="modalNotes">הערות:</label>
+        <textarea id="modalNotes" rows="3"></textarea>
+        
         <div class="btns">
-          <button type="submit" style="background:#21c97a;color:#fff;">שלח</button>
+          <button type="submit">שמור ושלח</button>
           <button type="button" onclick="closeModal()">ביטול</button>
         </div>
       </form>
@@ -165,57 +400,147 @@
 
   <!-- מודל סריקת QR -->
   <div class="modal-bg" id="qr-modal">
-    <div class="modal" style="min-width:300px;max-width:99vw;">
-      <h3 id="qr-title">סרוק את הברקוד של העמדה</h3>
+    <div class="modal">
+      <h3 id="qr-title">סרוק ברקוד עמדה</h3>
       <div id="qr-reader"></div>
       <div id="qr-error"></div>
       <div class="btns">
-        <button onclick="closeQRModal()">ביטול</button>
+        <button type="button" onclick="closeQRModal()">ביטול</button>
       </div>
     </div>
   </div>
+  
+  <!-- מודל דוח יומי -->
+  <div class="modal-bg" id="report-modal">
+      <div class="modal">
+        <div id="report-header">
+            <div id="report-date"></div>
+            <div id="report-day"></div>
+        </div>
+        <table id="report-table">
+            <thead>
+                <tr>
+                    <th>עמדה</th>
+                    <th>סטטוס</th>
+                    <th>שם הבודק</th>
+                    <th>הערות</th>
+                </tr>
+            </thead>
+            <tbody id="reportTableBody"></tbody>
+        </table>
+        <div class="btns">
+            <button type="button" onclick="closeReportModal()">סגור</button>
+        </div>
+      </div>
+  </div>
 
   <script type="module">
-    // --- קונפיג Firebase שלך ---
+    // --- קונפיג Firebase שלך (לפי מה ששלחת) ---
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.9.0/firebase-app.js";
-    import { getFirestore, collection, addDoc, getDocs, setDoc, doc, updateDoc, query, where } from "https://www.gstatic.com/firebasejs/11.9.0/firebase-firestore.js";
+    import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, query, where } from "https://www.gstatic.com/firebasejs/11.9.0/firebase-firestore.js";
 
     const firebaseConfig = {
-      apiKey: "AIzaSyAuflYG4eTuvFO4ixRclUlZ_V1yd-k22L4",
-      authDomain: "tapashe-31391.firebaseapp.com",
-      projectId: "tapashe-31391",
-      storageBucket: "tapashe-31391.firebasestorage.app",
-      messagingSenderId: "619276973853",
-      appId: "1:619276973853:web:ea6e5cf6a22968b62e93f4",
-      measurementId: "G-ZLZT6TBPG3"
+        apiKey: "AIzaSyAuflYG4eTuvFO4ixRclUlZ_V1yd-k22L4",
+        authDomain: "tapashe-31391.firebaseapp.com",
+        projectId: "tapashe-31391",
+        storageBucket: "tapashe-31391.firebasestorage.app",
+        messagingSenderId: "619276973853",
+        appId: "1:619276973853:web:ea6e5cf6a22968b62e93f4",
+        measurementId: "G-ZLZT6TBPG3"
     };
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    // עמדות דמו (אפשר להרחיב לכמה שתרצה)
-    const stations = [
-      { name: "לובי", barcode: "TAPASH-LOBBY-2024" },
-      { name: "חנייה", barcode: "TAPASH-PARKING-2024" }
-    ];
-    // לשימוש פנימי:
+    // --- רשימת כל העמדות + הדרישות שלהן ---
+/* ===== stations – עמדות ודרישות בדיוק לפי הטופס ===== */
+const stations = [
+  { name: "קומה 9- מרפסת שיזוף כניסה ראשית", requirements: "2 מטפים, 2 זרנוקים, 1 גלגלון, 1 מזנק קטן, 1 מזנק גדול" },
+  { name: "קומה 9-מרפסת שיזוף בתוך חדר מכונות (קיים מגוף)", requirements: "2 מטפים, 2 זרנוקים, 1 גלגלון, 1 מזנק קטן, 1 מזנק גדול, מפתח שטורץ" },
+  { name: "קומה 9- מרפסת שיזוף/דק פינת פדאני", requirements: "0 מטפים, 0 זרנוקים, 1 גלגלון, 1 מזנק קטן, 0 מזנק גדול" },
+  { name: "רופטופ", requirements: "2 מטפים, 2 זרנוקים, 1 גלגלון, 1 מזנק קטן, 1 מזנק גדול" },
+  { name: "מטבח רופטופ", requirements: "1 מטפים, 2 זרנוקים, 0 גלגלונים, 0 מזנק קטן, 1 מזנק גדול" },
+  { name: "קומה 8 מערב (קיים מגוף)", requirements: "2 מטפים, 2 זרנוקים, 1 גלגלון, 1 מזנק קטן, 1 מזנק גדול, מפתח שטורץ" },
+  { name: "קומה 7 מערב (קיים מגוף)", requirements: "2 מטפים, 2 זרנוקים, 1 גלגלון, 1 מזנק קטן, 1 מזנק גדול, מפתח שטורץ" },
+  { name: "קומה 7 ליד חדר 715", requirements: "2 מטפים, 2 זרנוקים, 1 גלגלון, 1 מזנק קטן, 1 מזנק גדול" },
+  { name: "קומה 7 מול חדר 703", requirements: "2 מטפים, 2 זרנוקים, 1 גלגלון, 1 מזנק קטן, 1 מזנק גדול" },
+  { name: "קומה 6 ליד חדר 615", requirements: "2 מטפים, 2 זרנוקים, 1 גלגלון, 1 מזנק קטן, 1 מזנק גדול" },
+  { name: "קומה 6 מול חדר 602", requirements: "2 מטפים, 2 זרנוקים, 1 גלגלון, 1 מזנק קטן, 1 מזנק גדול" },
+  { name: "קומה 6 מערב (קיים מגוף)", requirements: "2 מטפים, 2 זרנוקים, 1 גלגלון, 1 מזנק קטן, 1 מזנק גדול, מפתח שטורץ" },
+  { name: "קומה 5 מערב (קיים מגוף)", requirements: "2 מטפים, 2 זרנוקים, 1 גלגלון, 1 מזנק קטן, 1 מזנק גדול, מפתח שטורץ" },
+  { name: "קומה 5 ליד חדר 515", requirements: "2 מטפים, 2 זרנוקים, 1 גלגלון, 1 מזנק קטן, 1 מזנק גדול" },
+  { name: "קומה 5 מול חדר 502", requirements: "2 מטפים, 2 זרנוקים, 1 גלגלון, 1 מזנק קטן, 1 מזנק גדול" },
+  { name: "קומה 4 ליד חדר 415", requirements: "2 מטפים, 2 זרנוקים, 1 גלגלון, 1 מזנק קטן, 1 מזנק גדול" },
+  { name: "קומה 4 מול חדר 402", requirements: "2 מטפים, 2 זרנוקים, 1 גלגלון, 1 מזנק קטן, 1 מזנק גדול" },
+  { name: "קומה 4 מערב (קיים מגוף)", requirements: "2 מטפים, 2 זרנוקים, 1 גלגלון, 1 מזנק קטן, 1 מזנק גדול, מפתח שטורץ" },
+  { name: "קומה 3 מערב (קיים מגוף)", requirements: "2 מטפים, 2 זרנוקים, 1 גלגלון, 1 מזנק קטן, 1 מזנק גדול, מפתח שטורץ" },
+  { name: "קומה 3 סוויטות (קיים מגוף)", requirements: "2 מטפים, 2 זרנוקים, 1 גלגלון, 1 מזנק קטן, 1 מזנק גדול" },
+  { name: "קומה 3 ליד חדר 315", requirements: "2 מטפים, 2 זרנוקים, 1 גלגלון, 1 מזנק קטן, 1 מזנק גדול" },
+  { name: "קומה 3 מול חדר 302", requirements: "2 מטפים, 2 זרנוקים, 1 גלגלון, 1 מזנק קטן, 1 מזנק גדול" },
+  { name: "קומה 2 ליד חדר 215", requirements: "2 מטפים, 2 זרנוקים, 1 גלגלון, 1 מזנק קטן, 1 מזנק גדול" },
+  { name: "קומה 2 ליד מטבח מירור בר", requirements: "2 מטפים, 2 זרנוקים, 1 גלגלון, 1 מזנק קטן, 1 מזנק גדול" },
+  { name: "קומה 2 משרד מכירות (קיים מגוף)", requirements: "2 מטפים, 2 זרנוקים, 1 גלגלון, 1 מזנק קטן, 1 מזנק גדול, מפתח שטורץ" },
+  { name: "קומה 2 ליד ארון חשמל וינרי", requirements: "2 מטפים, 2 זרנוקים, 1 גלגלון, 1 מזנק קטן, 1 מזנק גדול" },
+  { name: "קומה 2 סוויטות (קיים מגוף)", requirements: "2 מטפים, 2 זרנוקים, 1 גלגלון, 1 מזנק קטן, 1 מזנק גדול" },
+  { name: "מירור בר – עמדה שמאלית", requirements: "2 מטפים, 2 זרנוקים, 1 גלגלון, 1 מזנק קטן, 1 מזנק גדול" },
+  { name: "מירור בר – חדר סיגרים", requirements: "2 מטפים, 2 זרנוקים, 1 גלגלון, 1 מזנק קטן, 1 מזנק גדול" },
+  { name: "לובי אספרסו בר (קיים מגוף)", requirements: "2 מטפים, 2 זרנוקים, 1 גלגלון, 1 מזנק קטן, 1 מזנק גדול, מפתח שטורץ" },
+  { name: "מעבר ממלון לגשר (קיים מגוף)", requirements: "2 מטפים, 2 זרנוקים, 1 גלגלון, 1 מזנק קטן, 1 מזנק גדול" },
+  { name: "טרסה הפי פיש", requirements: "1 מטפים, 1 זרנוקים, 0 גלגלונים, 0 מזנק קטן, 0 מזנק גדול" },
+  { name: "מטבח הפי פיש", requirements: "1 מטפים, 0 זרנוקים, 1 גלגלון, 1 מזנק קטן, 0 מזנק גדול" },
+  { name: "אקאשה עמדה אזור בר אורגני", requirements: "2 מטפים, 2 זרנוקים, 1 גלגלון, 1 מזנק קטן, 1 מזנק גדול" },
+  { name: "אקאשה עמדת חדר כושר", requirements: "1 מטפים, 2 זרנוקים, 1 גלגלון, 1 מזנק קטן, 1 מזנק גדול" },
+  { name: "אקאשה משמאל לחדר טיפולים 2 (ליד חדר צוות)", requirements: "2 מטפים, 2 זרנוקים, 1 גלגלון, 1 מזנק קטן, 1 מזנק גדול" },
+  { name: "קומהL1 ליד חדר 115", requirements: "2 מטפים, 2 זרנוקים, 1 גלגלון, 1 מזנק קטן, 1 מזנק גדול" },
+  { name: "קומת כניסה ליד גלריה", requirements: "2 מטפים, 2 זרנוקים, 1 גלגלון, 1 מזנק קטן, 1 מזנק גדול" },
+  { name: "קומה L1 על יד שירותי אורחים", requirements: "2 מטפים, 2 זרנוקים, 1 גלגלון, 1 מזנק קטן, 1 מזנק גדול" },
+  { name: "טרקלין עסקים מחשבים", requirements: "0 מטפים, 2 זרנוקים, 0 גלגלונים, 0 מזנק קטן, 1 מזנק גדול" },
+  { name: "קומה R- פטיו", requirements: "2 מטפים, 2 זרנוקים, 1 גלגלון, 1 מזנק קטן, 1 מזנק גדול" },
+  { name: "קומה R במטבח מול חדר הרום סרויס", requirements: "2 מטפים, 0 זרנוקים, 1 גלגלון, 1 מזנק קטן, 0 מזנק גדול" },
+  { name: "יציאה מהמטבח הראשי לכיוון גרדרובה (ABC) (קיים מגוף)", requirements: "2 מטפים, 2 זרנוקים, 1 גלגלון, 1 מזנק קטן, 1 מזנק גדול, מפתח שטורץ" },
+  { name: "קומה R- שירותי אורחים", requirements: "2 מטפים, 2 זרנוקים, 1 גלגלון, 1 מזנק קטן, 1 מזנק גדול" },
+  { name: "קומה R- חדרי ישיבות בחזית", requirements: "1 מטפים, 2 זרנוקים, 1 גלגלון, 1 מזנק קטן, 1 מזנק גדול" },
+  { name: "קומה R חדרי ישיבות מאחור", requirements: "2 מטפים, 2 זרנוקים, 1 גלגלון, 1 מזנק קטן, 1 מזנק גדול" },
+  { name: "קומה R סוף מסדרון שירות חדר אוכל אורחים", requirements: "1 מטפים, 2 זרנוקים, 1 גלגלון, 1 מזנק קטן, 1 מזנק גדול" },
+  { name: "קומה BH- מנ״מ", requirements: "2 מטפים, 2 זרנוקים, 1 גלגלון, 1 מזנק קטן, 1 מזנק גדול" },
+  { name: "קומה BH- מחסן יבש", requirements: "2 מטפים, 0 זרנוקים, 0 גלגלונים, 0 מזנק קטן, 0 מזנק גדול" },
+  { name: "קומה BH - מול חד״א עובדים (קיים מגוף)", requirements: "2 מטפים, 2 זרנוקים, 1 גלגלון, 1 מזנק קטן, 1 מזנק גדול, מפתח שטורץ" },
+  { name: "בניין 14 מול חדר קב״טים (קיים מגוף)", requirements: "2 מטפים, 2 זרנוקים, 0 גלגלונים, 0 מזנק קטן, 1 מזנק גדול" },
+  { name: "קומה BH- משק בית", requirements: "2 מטפים, 2 זרנוקים, 1 גלגלון, 1 מזנק קטן, 1 מזנק גדול" },
+  { name: "קומה BH- ליד משרד אחזקה", requirements: "2 מטפים, 1 זרנוק, 1 גלגלון, 1 מזנק קטן, 1 מזנק גדול" },
+  { name: "יציאה לחצר משק מימין", requirements: "2 מטפים, 2 זרנוקים, 2 גלגלונים, 2 מזנק קטן, 2 מזנק גדול" },
+  { name: "יציאה לחצר משק משמאל (נגרייה)", requirements: "1 מטפים, 1 זרנוק, 1 גלגלון, 1 מזנק קטן, 1 מזנק גדול" },
+  { name: "קומה S מאחורי הדלפק", requirements: "2 מטפים, 2 זרנוקים, 1 גלגלון, 1 מזנק קטן, 1 מזנק גדול" },
+  { name: "קומה S חדר מכונות על יד בריכת ילדים", requirements: "2 מטפים, 2 זרנוקים, 1 גלגלון, 1 מזנק קטן, 1 מזנק גדול" },
+  { name: "קומה S חניון (קיים מגוף)", requirements: "2 מטפים, 2 זרנוקים, 1 גלגלון, 1 מזנק קטן, 1 מזנק גדול, מפתח שטורץ" },
+  { name: "מסגרייה", requirements: "1 מטפים, 0 זרנוקים, 0 גלגלונים, 0 מזנק קטן, 0 מזנק גדול" },
+  { name: "אודיטוריום ליד מעלית שדרה (קיים מגוף)", requirements: "1 מטפים, 2 זרנוקים, 1 גלגלון, 1 מזנק קטן, 1 מזנק גדול, מפתח שטורץ" },
+  { name: "גרם מדרגות מאחורי אודיטוריום", requirements: "1 מטפים, 2 זרנוקים, 1 גלגלון, 1 מזנק קטן, 1 מזנק גדול" },
+  { name: "קומה P3 חניון אודיטוריום", requirements: "1 מטפים, 2 זרנוקים, 1 גלגלון, 1 מזנק קטן, 1 מזנק גדול" }
+];
+/* ===== סוף מערך stations ===== */
+
     let editingDocId = null;
     let currentScanStation = null;
     let html5Qr = null;
 
-    // הצגת טבלה רק אחרי "התחל בדיקה שבועית"
+    // --- מאזינים לאירועים ---
     document.getElementById('start-btn').onclick = () => {
       document.getElementById('stationsBlock').style.display = 'block';
       renderStationsTable();
       document.getElementById('start-btn').style.display = 'none';
     };
 
-    // בונה טבלה דינמית של כל העמדות
+    document.getElementById('modalForm').onsubmit = handleFormSubmit;
+    document.getElementById('create-report-btn').onclick = generateReport;
+
+    // --- פונקציות ראשיות ---
+
     async function renderStationsTable() {
       const tbody = document.getElementById('stationsBody');
-      tbody.innerHTML = "";
+      tbody.innerHTML = "<tr><td colspan='3'>טוען נתונים...</td></tr>";
       const today = new Date().toISOString().split('T')[0];
 
-      // שליפת הבדיקות שכבר בוצעו
+      // שליפת הבדיקות שכבר בוצעו מהיום
       const checksSnap = await getDocs(query(collection(db, "fire_checks"), where("date", "==", today)));
       const checks = {};
       checksSnap.forEach(docSnap => {
@@ -223,24 +548,19 @@
         checks[d.station] = { ...d, docId: docSnap.id };
       });
 
+      tbody.innerHTML = ""; // מנקה לפני רינדור מחדש
       stations.forEach(station => {
         const check = checks[station.name];
-        let statusCell = "";
-        let actionBtn = "";
+        let statusCell = `<span class="status-chip status-note"><i class="fa fa-clock"></i> לא בוצע</span>`;
+        let actionBtn = `<button class="station-action-btn scan" data-station="${station.name}"><i class="fa-solid fa-qrcode"></i> סרוק ברקוד</button>`;
 
-        if (!check) {
-          // טרם בוצעה בדיקה – כפתור סריקת ברקוד בלבד
-          statusCell = `<span class="status-chip status-note"><i class="fa fa-clock"></i> לא בוצע</span>`;
-          actionBtn = `<button class="station-action-btn scan" data-station="${station.name}"><i class="fa-solid fa-qrcode"></i> סרוק ברקוד</button>`;
-        } else {
-          // כבר יש בדיקה – מציגים סטטוס ומאפשרים עריכה
-          if (check.status === "כן") {
-            statusCell = `<span class="status-chip status-ok"><i class="fa-solid fa-circle-check"></i> תקין</span>`;
-          } else {
-            statusCell = `<span class="status-chip status-bad"><i class="fa-solid fa-triangle-exclamation"></i> לא תקין</span>`;
-          }
+        if (check) {
+          statusCell = check.status === "כן"
+            ? `<span class="status-chip status-ok"><i class="fa-solid fa-circle-check"></i> תקין</span>`
+            : `<span class="status-chip status-bad"><i class="fa-solid fa-triangle-exclamation"></i> לא תקין</span>`;
+          
           if (check.notes && check.notes.trim() !== "") {
-            statusCell += `<span class="status-chip status-note"><i class="fa-regular fa-comment-dots"></i> הערות</span>`;
+            statusCell += `<span class="status-chip status-note" title="הערה: ${check.notes}"><i class="fa-regular fa-comment-dots"></i> הערות</span>`;
           }
           actionBtn = `<button class="station-action-btn edit" data-docid="${check.docId}"><i class="fa-solid fa-pen"></i> ערוך</button>`;
         }
@@ -250,101 +570,181 @@
             <td>${station.name}</td>
             <td>${statusCell}</td>
             <td>${actionBtn}</td>
-          </tr>
-        `;
+          </tr>`;
       });
+      addTableButtonListeners();
+    }
 
-      // מאזין מחדש לכפתורים:
+    function addTableButtonListeners() {
       document.querySelectorAll('.station-action-btn.scan').forEach(btn => {
-        btn.onclick = function() {
-          const stationName = btn.dataset.station;
-          openQRModal(stationName);
-        }
+        btn.onclick = () => openQRModal(btn.dataset.station);
       });
       document.querySelectorAll('.station-action-btn.edit').forEach(btn => {
-        btn.onclick = async function() {
+        btn.onclick = async () => {
           const docId = btn.dataset.docid;
-          // שלוף את הדאטה הקיים לעריכה
           const checksSnap = await getDocs(query(collection(db, "fire_checks"), where("__name__", "==", docId)));
-          checksSnap.forEach(d => openModal(d.data().station, docId, d.data()));
-        }
-      });
-    }
-
-    // מודל סריקת QR – תומך בבדיקה שהברקוד שייך לעמדה הזו בלבד
-    function openQRModal(stationName) {
-      currentScanStation = stationName;
-      document.getElementById('qr-modal').classList.add('active');
-      document.getElementById('qr-error').innerText = "";
-      document.getElementById('qr-title').innerText = `סרוק את הברקוד של העמדה: ${stationName}`;
-      if (!html5Qr) {
-        html5Qr = new Html5Qrcode("qr-reader");
-      } else {
-        html5Qr.stop().then(()=>{});
-      }
-      html5Qr.start(
-        { facingMode: "environment" },
-        { fps: 15, qrbox: 220 },
-        (decodedText) => {
-          const stationObj = stations.find(s => s.name === currentScanStation);
-          if (stationObj && decodedText === stationObj.barcode) {
-            html5Qr.stop().then(()=>{});
-            document.getElementById('qr-modal').classList.remove('active');
-            openModal(stationObj.name);
-          } else {
-            document.getElementById('qr-error').innerText = "❌ זה לא הברקוד הנכון לעמדה הזו! נסה שוב.";
+          if (!checksSnap.empty) {
+            openModal(checksSnap.docs[0].data().station, docId, checksSnap.docs[0].data());
           }
-        },
-        (errorMessage) => { /* לא להציג שגיאות קטנות */ }
-      ).catch(err => {
-        document.getElementById('qr-error').innerText = "לא ניתן להפעיל מצלמה. אפשר לאשר הרשאה או לנסות דפדפן אחר.";
+        };
       });
     }
-    window.closeQRModal = function() {
-      document.getElementById('qr-modal').classList.remove('active');
-      if (html5Qr) html5Qr.stop().then(()=>{});
+    
+    async function handleFormSubmit(e) {
+      e.preventDefault();
+      const data = {
+        date: document.getElementById('modalDate').value,
+        inspector: document.getElementById('modalInspector').value.trim(),
+        station: document.getElementById('modalStation').value,
+        status: document.getElementById('modalStatus').value,
+        notes: document.getElementById('modalNotes').value.trim(),
+        timestamp: Date.now()
+      };
+      
+      try {
+        if (editingDocId) {
+          await updateDoc(doc(db, "fire_checks", editingDocId), data);
+        } else {
+          await addDoc(collection(db, "fire_checks"), data);
+        }
+      } catch (error) {
+        console.error("Error writing to Firestore: ", error);
+        alert("שגיאה בשמירת הנתונים. נסה שוב.");
+      } finally {
+        closeModal();
+      }
     }
 
-    // מודל בדיקה
-    function openModal(station, docId=null, editData=null) {
-      document.getElementById('modalBG').classList.add('active');
+    // --- ניהול מודלים (חלונות קופצים) ---
+    
+    function openModal(station, docId = null, editData = null) {
+      editingDocId = docId;
       document.getElementById('modalTitle').innerText = "בדיקת עמדה: " + station;
       document.getElementById('modalDate').value = new Date().toISOString().split('T')[0];
       document.getElementById('modalStation').value = station;
       document.getElementById('modalInspector').value = editData ? editData.inspector : "";
       document.getElementById('modalStatus').value = editData ? editData.status : "כן";
       document.getElementById('modalNotes').value = editData ? editData.notes : "";
-      editingDocId = docId;
-    }
-    function closeModal() {
-      document.getElementById('modalBG').classList.remove('active');
-      editingDocId = null;
-      setTimeout(()=>{renderStationsTable();}, 100);
-    }
-
-    // שליחת טופס בדיקה
-    document.getElementById('modalForm').onsubmit = async function(e) {
-      e.preventDefault();
-      const data = {
-        date: document.getElementById('modalDate').value,
-        inspector: document.getElementById('modalInspector').value,
-        station: document.getElementById('modalStation').value,
-        status: document.getElementById('modalStatus').value,
-        notes: document.getElementById('modalNotes').value,
-        timestamp: Date.now()
-      };
-      if (editingDocId) {
-        await updateDoc(doc(db, "fire_checks", editingDocId), data);
-      } else {
-        await addDoc(collection(db, "fire_checks"), data);
+      // מעלה טקסט עם דרישות העמדה (כמות מטפים וכו') מעל השדות:
+      const stationObj = stations.find(s => s.name === station);
+      if (stationObj) {
+        // מוסיף באופן דינמי <p> עם הדרישות לפני הכותרת של המודל
+        let reqElem = document.getElementById('station-requirements');
+        if (!reqElem) {
+          reqElem = document.createElement('p');
+          reqElem.id = 'station-requirements';
+          reqElem.style.marginTop = '0';
+          reqElem.style.marginBottom = '1rem';
+          reqElem.style.color = 'var(--note-color)';
+          reqElem.style.fontWeight = '600';
+          document.querySelector('#modalForm h3').insertAdjacentElement('afterend', reqElem);
+        }
+        reqElem.innerText = `בעמדה זו אמורים להיות: ${stationObj.requirements}`;
       }
-      closeModal();
+      document.getElementById('modalBG').classList.add('active');
+    }
+    
+    window.closeModal = function() {
+      document.getElementById('modalBG').classList.remove('active');
+      // מסיר את הפסקה של הדרישות מהמודל
+      const reqElem = document.getElementById('station-requirements');
+      if (reqElem) reqElem.remove();
+      editingDocId = null;
       renderStationsTable();
-    };
+    }
+    
+    // --- QR קוד ---
+    function openQRModal(stationName) {
+      currentScanStation = stationName;
+      const modal = document.getElementById('qr-modal');
+      modal.classList.add('active');
+      document.getElementById('qr-error').innerText = "";
+      document.getElementById('qr-title').innerText = `סרוק את הברקוד של: ${stationName}`;
+      
+      if (!html5Qr) {
+        html5Qr = new Html5Qrcode("qr-reader");
+      }
+      
+      html5Qr.start(
+        { facingMode: "environment" },
+        { fps: 15, qrbox: { width: 250, height: 250 } },
+        (decodedText) => {
+          // כאן בודקים שהטקסט המתקבל מהברקוד תואם למילה stationName בדיוק
+          if (decodedText === currentScanStation) {
+            html5Qr.stop().then(() => {
+              closeQRModal();
+              openModal(currentScanStation);
+            });
+          } else {
+            document.getElementById('qr-error').innerText = "❌ ברקוד לא נכון לעמדה זו!";
+          }
+        },
+        (errorMessage) => { /* שגיאות קטנות, מתעלמים */ }
+      ).catch(err => {
+        document.getElementById('qr-error').innerText = "לא ניתן להפעיל מצלמה. יש לאשר הרשאות.";
+      });
+    }
 
-    // בזמן טעינה – רק טבלה ריקה (עד "התחל")
-    document.getElementById('stationsBody').innerHTML = "";
+    window.closeQRModal = function() {
+      if (html5Qr && html5Qr.isScanning) {
+        html5Qr.stop().catch(err => console.error("Failed to stop QR scanner:", err));
+      }
+      document.getElementById('qr-modal').classList.remove('active');
+    }
 
+    // --- פונקציונליות חדשה: יצירת דוח יומי ---
+
+    async function generateReport() {
+        const today = new Date();
+        const dateString = today.toISOString().split('T')[0];
+        const dayNames = ["יום ראשון", "יום שני", "יום שלישי", "יום רביעי", "יום חמישי", "יום שישי", "יום שבת"];
+        
+        document.getElementById('report-date').innerText = today.toLocaleDateString('he-IL', { day: 'numeric', month: 'long', year: 'numeric' });
+        document.getElementById('report-day').innerText = dayNames[today.getDay()];
+        
+        const tbody = document.getElementById('reportTableBody');
+        tbody.innerHTML = "<tr><td colspan='4'>מכין דוח...</td></tr>";
+
+        // מוציאים את כל הבדיקות שבוצעו היום
+        const checksSnap = await getDocs(query(collection(db, "fire_checks"), where("date", "==", dateString)));
+        const checks = {};
+        checksSnap.forEach(docSnap => {
+            const d = docSnap.data();
+            checks[d.station] = d;
+        });
+
+        tbody.innerHTML = "";
+        stations.forEach(station => {
+            const check = checks[station.name];
+            let status, inspector, notes;
+
+            if (check) {
+                status = check.status === 'כן' ? 'תקין' : 'לא תקין';
+                inspector = check.inspector || '-';
+                notes = check.notes || '-';
+            } else {
+                status = 'לא בוצע';
+                inspector = '-';
+                notes = '-';
+            }
+
+            tbody.innerHTML += `
+                <tr>
+                    <td>${station.name}</td>
+                    <td>${status}</td>
+                    <td>${inspector}</td>
+                    <td>${notes}</td>
+                </tr>
+            `;
+        });
+
+        document.getElementById('report-modal').classList.add('active');
+    }
+
+    window.closeReportModal = function() {
+        document.getElementById('report-modal').classList.remove('active');
+    }
+    
   </script>
 </body>
 </html>
