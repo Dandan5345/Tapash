@@ -2,185 +2,304 @@
 <html lang="he" dir="rtl">
 <head>
   <meta charset="UTF-8">
-  <title>טופס בדיקת עמדת אש</title>
+  <title>Tapash - בדיקות עמדות אש</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/11.9.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/11.9.0/firebase-firestore-compat.js"></script>
+  <!-- html5-qrcode לסריקת QR -->
+  <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
   <style>
-    body {
-      font-family: 'Segoe UI', 'Heebo', Arial, sans-serif;
-      margin: 0;
-      padding: 0;
-      min-height: 100vh;
-      background: linear-gradient(135deg, #43cea2 0%, #185a9d 100%);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-    .form-container {
-      background: rgba(255,255,255,0.97);
-      padding: 32px 28px 24px 28px;
-      border-radius: 16px;
-      box-shadow: 0 6px 32px 0 rgba(20,80,150,0.13), 0 1.5px 4px 0 rgba(0,0,0,0.06);
-      max-width: 400px;
-      width: 100%;
-      margin: 32px auto;
-      border-top: 7px solid #21c97a;
-      position: relative;
-      animation: floatUp 0.7s cubic-bezier(0.23,1,0.32,1);
-    }
-    @keyframes floatUp {
-      from { opacity: 0; transform: translateY(24px);}
-      to { opacity: 1; transform: translateY(0);}
-    }
-    h2 {
-      color: #185a9d;
-      font-size: 1.45rem;
-      letter-spacing: 1px;
-      margin-bottom: 20px;
-      text-align: center;
-    }
-    label {
-      display: block;
-      color: #185a9d;
-      margin-bottom: 4px;
-      margin-top: 16px;
-      font-size: 0.98rem;
-      font-weight: 500;
-    }
-    input, select, textarea {
-      width: 100%;
-      padding: 11px 10px 11px 35px;
-      font-size: 1.05rem;
-      border: 1.5px solid #bed1e6;
-      border-radius: 8px;
-      outline: none;
-      margin-bottom: 7px;
-      background: #f7fafc;
-      transition: border 0.2s;
-      box-sizing: border-box;
-    }
-    input:focus, select:focus, textarea:focus {
-      border: 1.5px solid #21c97a;
-      background: #fff;
-    }
-    button {
-      margin-top: 20px;
-      background: linear-gradient(90deg, #21c97a 0%, #43cea2 100%);
-      color: white;
-      padding: 13px;
-      border: none;
-      border-radius: 8px;
-      width: 100%;
-      font-size: 1.15rem;
-      font-weight: bold;
-      letter-spacing: 1px;
-      box-shadow: 0 3px 15px 0 rgba(33,201,122,0.11);
-      cursor: pointer;
-      transition: background 0.2s, box-shadow 0.2s;
-    }
-    button:hover {
-      background: linear-gradient(90deg, #185a9d 0%, #43cea2 100%);
-      box-shadow: 0 8px 18px 0 rgba(24,90,157,0.12);
-    }
-    .input-icon {
-      position: relative;
-    }
-    .input-icon input, .input-icon textarea, .input-icon select {
-      padding-right: 38px !important;
-    }
-    .input-icon .icon {
-      position: absolute;
-      top: 52%;
-      right: 12px;
-      transform: translateY(-50%);
-      font-size: 1.17em;
-      color: #21c97a;
-      pointer-events: none;
-    }
-    @media (max-width: 480px) {
-      .form-container { max-width: 99vw; padding: 16px 7px 12px 7px;}
-      h2 { font-size: 1.08rem;}
-    }
+    body { background: #e8f6ef; font-family: 'Heebo', Arial, sans-serif; margin: 0; }
+    .main { max-width: 550px; margin: 38px auto; background: #fff; border-radius: 13px; padding: 32px 28px 26px 28px; box-shadow: 0 8px 32px 0 rgba(20,80,150,0.13);}
+    h1 { color: #186a98; text-align: center; }
+    .stations-list { margin: 25px 0 10px 0;}
+    .station { display: flex; align-items: center; justify-content: space-between; background: #f2fcf7; margin-bottom: 10px; padding: 12px 16px; border-radius: 8px; }
+    .station-name { font-weight: bold; font-size: 1.13em;}
+    .scan-btn { background: #21c97a; color: #fff; border: none; border-radius: 6px; padding: 8px 16px; cursor: pointer; font-size: 1em;}
+    .scan-btn:hover { background: #1ea167;}
+    .dashboard { margin-top: 25px;}
+    .checks-table { width: 100%; border-collapse: collapse; margin-top: 14px;}
+    .checks-table th, .checks-table td { border: 1px solid #bed1e6; padding: 7px; text-align: center;}
+    .checks-table th { background: #e0f3f3;}
+    .checks-table tr:nth-child(even) { background: #f7fafc;}
+    .btn-report, .btn-reset { background: #185a9d; color: #fff; border: none; border-radius: 5px; padding: 8px 18px; font-size: 1em; cursor: pointer; margin: 7px 5px;}
+    .btn-report:hover { background: #21c97a; }
+    .edit-btn { background: #ffce3d; color: #2b2b2b; border: none; border-radius: 5px; padding: 4px 11px; cursor: pointer; font-size: 0.95em;}
+    .modal-bg { display: none; position: fixed; top:0; right:0; left:0; bottom:0; background: rgba(30,100,100,0.14); z-index: 999; align-items: center; justify-content: center;}
+    .modal-bg.active { display: flex; }
+    .modal { background: #fff; border-radius: 10px; padding: 28px 23px; min-width: 270px; max-width: 99vw; box-shadow: 0 2px 18px #185a9d22;}
+    .modal label { margin-top: 7px; display: block;}
+    .modal input, .modal select, .modal textarea { width: 100%; margin-top: 3px; margin-bottom: 9px; padding: 7px; border-radius: 5px; border: 1px solid #bed1e6;}
+    .modal .btns { margin-top: 13px; text-align: center;}
+    .modal .btns button { margin: 0 5px;}
+    #qr-modal { z-index: 2000; }
+    #qr-reader { margin: 0 auto; width: 280px;}
+    #qr-error { color: #a61d1d; text-align: center; font-size: 1.04em; margin: 7px 0 0 0;}
   </style>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
-  <div class="form-container">
-    <h2><i class="fa-solid fa-fire-extinguisher"></i> טופס בדיקת עמדת אש</h2>
-    <form id="fireCheckForm">
-      <div class="input-icon">
-        <label for="date">תאריך:</label>
-        <input type="text" id="date" readonly>
-        <span class="icon"><i class="fa-regular fa-calendar-days"></i></span>
+  <div class="main">
+    <h1>Tapash - בדיקות עמדות אש</h1>
+    <button id="start-checks" style="width:100%;margin-bottom:14px;font-size:1.07em;">התחל בדיקה שבועית</button>
+    <div id="stationsBlock" style="display:none;">
+      <div class="stations-list">
+        <div class="station">
+          <span class="station-name">לובי</span>
+          <button class="scan-btn" data-station="לובי">📷 סרוק ברקוד</button>
+        </div>
+        <div class="station">
+          <span class="station-name">חנייה</span>
+          <button class="scan-btn" data-station="חנייה">📷 סרוק ברקוד</button>
+        </div>
       </div>
-
-      <div class="input-icon">
-        <label for="inspector">שם הקב"ט:</label>
-        <input type="text" id="inspector" required placeholder="הקלד את שמך">
-        <span class="icon"><i class="fa-solid fa-user-shield"></i></span>
+    </div>
+    <div class="dashboard">
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <button class="btn-report" onclick="showReportTable()">צור דוח בטבלה</button>
+        <button class="btn-reset" onclick="resetDay()">איפוס כל הבדיקות</button>
       </div>
+      <h3 style="margin-bottom:6px;margin-top:20px;color:#186a98;">כל הבדיקות שבוצעו היום:</h3>
+      <table class="checks-table" id="checksTable">
+        <thead>
+          <tr>
+            <th>עמדה</th>
+            <th>תאריך</th>
+            <th>שם קב"ט</th>
+            <th>תקינות</th>
+            <th>הערות</th>
+            <th>עריכה</th>
+          </tr>
+        </thead>
+        <tbody id="checksBody"></tbody>
+      </table>
+    </div>
+  </div>
 
-      <div class="input-icon">
-        <label for="station">מזהה עמדה:</label>
-        <input type="text" id="station" readonly>
-        <span class="icon"><i class="fa-solid fa-location-dot"></i></span>
-      </div>
-
-      <div class="input-icon">
-        <label for="status">עמדה תקינה:</label>
-        <select id="status">
+  <!-- מודל לטופס בדיקה -->
+  <div class="modal-bg" id="modalBG">
+    <div class="modal">
+      <form id="modalForm">
+        <h3 id="modalTitle"></h3>
+        <label>תאריך:</label>
+        <input type="text" id="modalDate" readonly>
+        <label>שם קב"ט:</label>
+        <input type="text" id="modalInspector" required>
+        <label>עמדה:</label>
+        <input type="text" id="modalStation" readonly>
+        <label>תקינות:</label>
+        <select id="modalStatus">
           <option value="כן">כן</option>
           <option value="לא">לא</option>
         </select>
-        <span class="icon"><i class="fa-solid fa-check-circle"></i></span>
-      </div>
-
-      <div class="input-icon">
-        <label for="notes">הערות:</label>
-        <textarea id="notes" rows="2" placeholder="אם יש משהו חריג, רשום כאן"></textarea>
-        <span class="icon"><i class="fa-regular fa-comment-dots"></i></span>
-      </div>
-
-      <button type="submit">
-        <i class="fa-solid fa-paper-plane"></i> שלח בדיקה
-      </button>
-    </form>
+        <label>הערות:</label>
+        <textarea id="modalNotes" rows="2"></textarea>
+        <div class="btns">
+          <button type="submit" style="background:#21c97a;color:#fff;">שלח</button>
+          <button type="button" onclick="closeModal()">ביטול</button>
+        </div>
+      </form>
+    </div>
   </div>
-  <script>
-    // תאריך נוכחי
-    const today = new Date().toISOString().split('T')[0];
-    document.getElementById("date").value = today;
-    // מזהה עמדה מה-URL
-    const urlParams = new URLSearchParams(window.location.search);
-    const stationId = urlParams.get("station") || "לא צוינה";
-    document.getElementById("station").value = stationId;
 
-    // שליחת הטופס
-    document.getElementById("fireCheckForm").addEventListener("submit", function(e) {
-      e.preventDefault();
+  <!-- מודל דוח -->
+  <div class="modal-bg" id="reportBG">
+    <div class="modal" style="min-width:320px;">
+      <h3>דוח בדיקות שבועי</h3>
+      <table class="checks-table" id="reportTable"></table>
+      <div class="btns">
+        <button onclick="closeReport()">סגור</button>
+      </div>
+    </div>
+  </div>
 
-      // שליחה ב-form-urlencoded כדי לעקוף CORS
-      const data = new URLSearchParams();
-      data.append("date", document.getElementById("date").value);
-      data.append("inspector", document.getElementById("inspector").value);
-      data.append("station", document.getElementById("station").value);
-      data.append("status", document.getElementById("status").value);
-      data.append("notes", document.getElementById("notes").value);
+  <!-- מודל סריקת QR -->
+  <div class="modal-bg" id="qr-modal">
+    <div class="modal" style="min-width:300px;max-width:99vw;">
+      <h3 id="qr-title">סרוק את הברקוד של העמדה</h3>
+      <div id="qr-reader"></div>
+      <div id="qr-error"></div>
+      <div class="btns">
+        <button onclick="closeQRModal()">ביטול</button>
+      </div>
+    </div>
+  </div>
 
-      fetch("https://script.google.com/macros/s/AKfycbzvHOLustCaonGgXN-7ftO9ty_cPdAxzTBIwCjj5W75zKIyukleX9ut1bSdqEwoyEA/exec", {
-        method: "POST",
-        body: data,
-      })
-      .then(response => response.text())
-      .then(result => {
-        alert("✅ הבדיקה נשמרה בהצלחה!");
-        document.getElementById("fireCheckForm").reset();
-        document.getElementById("date").value = today;
-        document.getElementById("station").value = stationId;
-      })
-      .catch(error => {
-        alert("❌ שגיאה בשליחה: " + error);
-      });
+  <script type="module">
+    // --- קונפיג Firebase שלך ---
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.9.0/firebase-app.js";
+    import { getFirestore, collection, addDoc, getDocs, setDoc, doc, updateDoc, deleteDoc, query, where } from "https://www.gstatic.com/firebasejs/11.9.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyAuflYG4eTuvFO4ixRclUlZ_V1yd-k22L4",
+      authDomain: "tapashe-31391.firebaseapp.com",
+      projectId: "tapashe-31391",
+      storageBucket: "tapashe-31391.firebasestorage.app",
+      messagingSenderId: "619276973853",
+      appId: "1:619276973853:web:ea6e5cf6a22968b62e93f4",
+      measurementId: "G-ZLZT6TBPG3"
+    };
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    // עמדות דמו
+    const barcodeMap = {
+      "TAPASH-LOBBY-2024": "לובי",
+      "TAPASH-PARKING-2024": "חנייה"
+    };
+    let currentStation = "";
+    let editingDocId = null;
+
+    // פתיחת רשימת עמדות
+    document.getElementById('start-checks').onclick = () => {
+      document.getElementById('stationsBlock').style.display = 'block';
+    };
+
+    // סריקת ברקוד (אמיתית)
+    document.querySelectorAll('.scan-btn').forEach(btn => {
+      btn.onclick = function() {
+        openQRModal();
+      }
     });
+
+    // QR Modal
+    let html5Qr;
+    function openQRModal() {
+      document.getElementById('qr-modal').classList.add('active');
+      document.getElementById('qr-error').innerText = "";
+      if (!html5Qr) {
+        html5Qr = new Html5Qrcode("qr-reader");
+      } else {
+        html5Qr.stop().then(()=>{});
+      }
+      html5Qr.start(
+        { facingMode: "environment" },
+        { fps: 15, qrbox: 220 },
+        (decodedText, decodedResult) => {
+          if (barcodeMap[decodedText]) {
+            html5Qr.stop().then(()=>{});
+            document.getElementById('qr-modal').classList.remove('active');
+            openModal(barcodeMap[decodedText]);
+          } else {
+            document.getElementById('qr-error').innerText = "ברקוד לא תקין או לא תואם לעמדה";
+          }
+        },
+        (errorMessage) => {
+          // לא להציג כל שגיאה קטנה
+        }
+      ).catch(err => {
+        document.getElementById('qr-error').innerText = "לא ניתן להפעיל מצלמה. אפשר לאשר הרשאה או לנסות מדפדפן אחר.";
+      });
+    }
+    window.closeQRModal = function() {
+      document.getElementById('qr-modal').classList.remove('active');
+      if (html5Qr) html5Qr.stop().then(()=>{});
+    }
+
+    // מודל
+    function openModal(station, docId=null, editData=null) {
+      document.getElementById('modalBG').classList.add('active');
+      document.getElementById('modalTitle').innerText = "בדיקת עמדה: " + station;
+      document.getElementById('modalDate').value = new Date().toISOString().split('T')[0];
+      document.getElementById('modalStation').value = station;
+      document.getElementById('modalInspector').value = editData ? editData.inspector : "";
+      document.getElementById('modalStatus').value = editData ? editData.status : "כן";
+      document.getElementById('modalNotes').value = editData ? editData.notes : "";
+      currentStation = station;
+      editingDocId = docId;
+    }
+    function closeModal() {
+      document.getElementById('modalBG').classList.remove('active');
+      editingDocId = null;
+    }
+
+    // שליחת טופס בדיקה
+    document.getElementById('modalForm').onsubmit = async function(e) {
+      e.preventDefault();
+      const data = {
+        date: document.getElementById('modalDate').value,
+        inspector: document.getElementById('modalInspector').value,
+        station: document.getElementById('modalStation').value,
+        status: document.getElementById('modalStatus').value,
+        notes: document.getElementById('modalNotes').value,
+        timestamp: Date.now()
+      };
+      if (editingDocId) {
+        await updateDoc(doc(db, "fire_checks", editingDocId), data);
+      } else {
+        await addDoc(collection(db, "fire_checks"), data);
+      }
+      closeModal();
+      loadChecks();
+    };
+
+    // הצגת כל הבדיקות שבוצעו היום
+    async function loadChecks() {
+      const tbody = document.getElementById('checksBody');
+      tbody.innerHTML = '';
+      const q = query(collection(db, "fire_checks"), where("date", "==", new Date().toISOString().split('T')[0]));
+      const querySnapshot = await getDocs(q);
+      querySnapshot.forEach(docSnap => {
+        const d = docSnap.data();
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${d.station}</td>
+          <td>${d.date}</td>
+          <td>${d.inspector}</td>
+          <td>${d.status}</td>
+          <td>${d.notes || ""}</td>
+          <td><button class="edit-btn" onclick="editCheck('${docSnap.id}')">ערוך</button></td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+    // פונקציית עריכה לגלובל
+    window.editCheck = async function(docId) {
+      const docSnap = await getDocs(query(collection(db, "fire_checks"), where("__name__", "==", docId)));
+      docSnap.forEach(d => openModal(d.data().station, docId, d.data()));
+    };
+
+    // כפתור איפוס (מוחק את בדיקות היום)
+    async function resetDay() {
+      if (!confirm("האם אתה בטוח שאתה רוצה לאפס את כל הבדיקות של היום?")) return;
+      const q = query(collection(db, "fire_checks"), where("date", "==", new Date().toISOString().split('T')[0]));
+      const querySnapshot = await getDocs(q);
+      for (const docSnap of querySnapshot.docs) {
+        await deleteDoc(doc(db, "fire_checks", docSnap.id));
+      }
+      loadChecks();
+    }
+
+    // דוח בטבלה
+    window.showReportTable = async function() {
+      const tbl = document.getElementById('reportTable');
+      tbl.innerHTML = `<tr><th>עמדה</th><th>תאריך</th><th>שם קב"ט</th><th>תקינות</th><th>הערות</th></tr>`;
+      const q = query(collection(db, "fire_checks"), where("date", "==", new Date().toISOString().split('T')[0]));
+      const querySnapshot = await getDocs(q);
+      querySnapshot.forEach(docSnap => {
+        const d = docSnap.data();
+        tbl.innerHTML += `<tr>
+          <td>${d.station}</td>
+          <td>${d.date}</td>
+          <td>${d.inspector}</td>
+          <td>${d.status}</td>
+          <td>${d.notes || ""}</td>
+        </tr>`;
+      });
+      document.getElementById('reportBG').classList.add('active');
+    };
+    window.closeReport = function() {
+      document.getElementById('reportBG').classList.remove('active');
+    };
+
+    // טעינת הבדיקות ברגע שנטען הדף
+    loadChecks();
+
+    // איפוס אוטומטי ב-23:59
+    setInterval(() => {
+      const now = new Date();
+      if (now.getHours() === 23 && now.getMinutes() === 59 && now.getSeconds() < 10) resetDay();
+    }, 7000);
   </script>
 </body>
 </html>
