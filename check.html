@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <title>בדיקת עמדת אש</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      background-color: #f4f4f4;
+    }
+    .form-container {
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      max-width: 500px;
+      margin: auto;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    label {
+      display: block;
+      margin-top: 10px;
+    }
+    input, select, textarea {
+      width: 100%;
+      padding: 8px;
+      margin-top: 5px;
+      border-radius: 4px;
+      border: 1px solid #ccc;
+    }
+    button {
+      margin-top: 15px;
+      background: #28a745;
+      color: white;
+      padding: 10px;
+      border: none;
+      border-radius: 4px;
+      width: 100%;
+      font-size: 16px;
+    }
+  </style>
+</head>
+<body>
+  <div class="form-container">
+    <h2>טופס בדיקת עמדת אש</h2>
+    <form id="fireCheckForm">
+      <label>תאריך:</label>
+      <input type="text" id="date" readonly>
+
+      <label>שם הקב"ט:</label>
+      <input type="text" id="inspector" required>
+
+      <label>מזהה עמדה:</label>
+      <input type="text" id="station" readonly>
+
+      <label>עמדה תקינה:</label>
+      <select id="status">
+        <option value="כן">כן</option>
+        <option value="לא">לא</option>
+      </select>
+
+      <label>הערות:</label>
+      <textarea id="notes" rows="3"></textarea>
+
+      <button type="submit">שלח בדיקה</button>
+    </form>
+  </div>
+
+  <script>
+    // קביעת תאריך אוטומטי
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById("date").value = today;
+
+    // קבלת מזהה התחנה מה-URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const stationId = urlParams.get("station") || "ללא מזהה";
+    document.getElementById("station").value = stationId;
+
+    // טיפול בשליחה (בהמשך נשלב עם Apps Script)
+    document.getElementById("fireCheckForm").addEventListener("submit", function(e) {
+      e.preventDefault();
+      alert("📋 הנתונים נקלטו! בהמשך זה יישלח אוטומטית לגוגל שיטס.");
+      // כאן נוסיף בהמשך fetch ל-Apps Script
+    });
+  </script>
+</body>
+</html>
