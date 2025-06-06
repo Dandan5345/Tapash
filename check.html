@@ -3,116 +3,181 @@
 <head>
   <meta charset="UTF-8">
   <title>טופס בדיקת עמדת אש</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
     body {
-      font-family: Arial, sans-serif;
-      padding: 20px;
-      background-color: #f4f4f4;
+      font-family: 'Segoe UI', 'Heebo', Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      min-height: 100vh;
+      background: linear-gradient(135deg, #43cea2 0%, #185a9d 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
     .form-container {
-      background: white;
-      padding: 20px;
-      border-radius: 8px;
-      max-width: 500px;
-      margin: auto;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      background: rgba(255,255,255,0.97);
+      padding: 32px 28px 24px 28px;
+      border-radius: 16px;
+      box-shadow: 0 6px 32px 0 rgba(20,80,150,0.13), 0 1.5px 4px 0 rgba(0,0,0,0.06);
+      max-width: 400px;
+      width: 100%;
+      margin: 32px auto;
+      border-top: 7px solid #21c97a;
+      position: relative;
+      animation: floatUp 0.7s cubic-bezier(0.23,1,0.32,1);
+    }
+    @keyframes floatUp {
+      from { opacity: 0; transform: translateY(24px);}
+      to { opacity: 1; transform: translateY(0);}
+    }
+    h2 {
+      color: #185a9d;
+      font-size: 1.45rem;
+      letter-spacing: 1px;
+      margin-bottom: 20px;
+      text-align: center;
     }
     label {
       display: block;
-      margin-top: 10px;
+      color: #185a9d;
+      margin-bottom: 4px;
+      margin-top: 16px;
+      font-size: 0.98rem;
+      font-weight: 500;
     }
     input, select, textarea {
       width: 100%;
-      padding: 8px;
-      margin-top: 5px;
-      border-radius: 4px;
-      border: 1px solid #ccc;
+      padding: 11px 10px 11px 35px;
+      font-size: 1.05rem;
+      border: 1.5px solid #bed1e6;
+      border-radius: 8px;
+      outline: none;
+      margin-bottom: 7px;
+      background: #f7fafc;
+      transition: border 0.2s;
+      box-sizing: border-box;
+    }
+    input:focus, select:focus, textarea:focus {
+      border: 1.5px solid #21c97a;
+      background: #fff;
     }
     button {
-      margin-top: 15px;
-      background: #28a745;
+      margin-top: 20px;
+      background: linear-gradient(90deg, #21c97a 0%, #43cea2 100%);
       color: white;
-      padding: 10px;
+      padding: 13px;
       border: none;
-      border-radius: 4px;
+      border-radius: 8px;
       width: 100%;
-      font-size: 16px;
+      font-size: 1.15rem;
+      font-weight: bold;
+      letter-spacing: 1px;
+      box-shadow: 0 3px 15px 0 rgba(33,201,122,0.11);
       cursor: pointer;
+      transition: background 0.2s, box-shadow 0.2s;
+    }
+    button:hover {
+      background: linear-gradient(90deg, #185a9d 0%, #43cea2 100%);
+      box-shadow: 0 8px 18px 0 rgba(24,90,157,0.12);
+    }
+    .input-icon {
+      position: relative;
+    }
+    .input-icon input, .input-icon textarea, .input-icon select {
+      padding-right: 38px !important;
+    }
+    .input-icon .icon {
+      position: absolute;
+      top: 52%;
+      right: 12px;
+      transform: translateY(-50%);
+      font-size: 1.17em;
+      color: #21c97a;
+      pointer-events: none;
+    }
+    @media (max-width: 480px) {
+      .form-container { max-width: 99vw; padding: 16px 7px 12px 7px;}
+      h2 { font-size: 1.08rem;}
     }
   </style>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
   <div class="form-container">
-    <h2>טופס בדיקת עמדת אש</h2>
+    <h2><i class="fa-solid fa-fire-extinguisher"></i> טופס בדיקת עמדת אש</h2>
     <form id="fireCheckForm">
-      <label>תאריך:</label>
-      <input type="text" id="date" readonly>
+      <div class="input-icon">
+        <label for="date">תאריך:</label>
+        <input type="text" id="date" readonly>
+        <span class="icon"><i class="fa-regular fa-calendar-days"></i></span>
+      </div>
 
-      <label>שם הקב"ט:</label>
-      <input type="text" id="inspector" required>
+      <div class="input-icon">
+        <label for="inspector">שם הקב"ט:</label>
+        <input type="text" id="inspector" required placeholder="הקלד את שמך">
+        <span class="icon"><i class="fa-solid fa-user-shield"></i></span>
+      </div>
 
-      <label>מזהה עמדה:</label>
-      <input type="text" id="station" readonly>
+      <div class="input-icon">
+        <label for="station">מזהה עמדה:</label>
+        <input type="text" id="station" readonly>
+        <span class="icon"><i class="fa-solid fa-location-dot"></i></span>
+      </div>
 
-      <label>עמדה תקינה:</label>
-      <select id="status">
-        <option value="כן">כן</option>
-        <option value="לא">לא</option>
-      </select>
+      <div class="input-icon">
+        <label for="status">עמדה תקינה:</label>
+        <select id="status">
+          <option value="כן">כן</option>
+          <option value="לא">לא</option>
+        </select>
+        <span class="icon"><i class="fa-solid fa-check-circle"></i></span>
+      </div>
 
-      <label>הערות:</label>
-      <textarea id="notes" rows="3"></textarea>
+      <div class="input-icon">
+        <label for="notes">הערות:</label>
+        <textarea id="notes" rows="2" placeholder="אם יש משהו חריג, רשום כאן"></textarea>
+        <span class="icon"><i class="fa-regular fa-comment-dots"></i></span>
+      </div>
 
-      <button type="submit">שלח בדיקה</button>
+      <button type="submit">
+        <i class="fa-solid fa-paper-plane"></i> שלח בדיקה
+      </button>
     </form>
   </div>
-
   <script>
     // תאריך נוכחי
     const today = new Date().toISOString().split('T')[0];
     document.getElementById("date").value = today;
-    console.log("📅 תאריך:", today);
-
     // מזהה עמדה מה-URL
     const urlParams = new URLSearchParams(window.location.search);
     const stationId = urlParams.get("station") || "לא צוינה";
     document.getElementById("station").value = stationId;
-    console.log("📍 מזהה עמדה:", stationId);
 
     // שליחת הטופס
     document.getElementById("fireCheckForm").addEventListener("submit", function(e) {
       e.preventDefault();
 
-      const data = {
-        date: document.getElementById("date").value,
-        inspector: document.getElementById("inspector").value,
-        station: document.getElementById("station").value,
-        status: document.getElementById("status").value,
-        notes: document.getElementById("notes").value,
-      };
+      // שליחה ב-form-urlencoded כדי לעקוף CORS
+      const data = new URLSearchParams();
+      data.append("date", document.getElementById("date").value);
+      data.append("inspector", document.getElementById("inspector").value);
+      data.append("station", document.getElementById("station").value);
+      data.append("status", document.getElementById("status").value);
+      data.append("notes", document.getElementById("notes").value);
 
-      console.log("🚀 שולח את הנתונים הבאים:", data);
-
-      fetch("https://script.google.com/macros/s/AKfycbya_stlMc8NM5jHH2GfaNwEd-RkTmNl6pbO1afEHYwGmDlQOgjiwWt2NSQv248swMY9/exec", {
+      fetch("https://script.google.com/macros/s/AKfycbzvHOLustCaonGgXN-7ftO9ty_cPdAxzTBIwCjj5W75zKIyukleX9ut1bSdqEwoyEA/exec", {
         method: "POST",
-        body: JSON.stringify(data),
-        headers: {
-          "Content-Type": "application/json",
-        },
+        body: data,
       })
-      .then(response => {
-        console.log("📬 תגובת השרת:", response);
-        return response.text();
-      })
+      .then(response => response.text())
       .then(result => {
-        console.log("✅ תוצאה מהשרת:", result);
         alert("✅ הבדיקה נשמרה בהצלחה!");
         document.getElementById("fireCheckForm").reset();
         document.getElementById("date").value = today;
         document.getElementById("station").value = stationId;
       })
       .catch(error => {
-        console.error("❌ שגיאה בשליחה:", error);
         alert("❌ שגיאה בשליחה: " + error);
       });
     });
