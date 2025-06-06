@@ -37,6 +37,7 @@
       border-radius: 4px;
       width: 100%;
       font-size: 16px;
+      cursor: pointer;
     }
   </style>
 </head>
@@ -67,20 +68,44 @@
   </div>
 
   <script>
-    // קביעת תאריך אוטומטי
+    // תאריך נוכחי
     const today = new Date().toISOString().split('T')[0];
     document.getElementById("date").value = today;
 
-    // קבלת מזהה התחנה מה-URL
+    // מזהה עמדה מה-URL
     const urlParams = new URLSearchParams(window.location.search);
-    const stationId = urlParams.get("station") || "ללא מזהה";
+    const stationId = urlParams.get("station") || "לא צוינה";
     document.getElementById("station").value = stationId;
 
-    // טיפול בשליחה (בהמשך נשלב עם Apps Script)
+    // שליחת הטופס
     document.getElementById("fireCheckForm").addEventListener("submit", function(e) {
       e.preventDefault();
-      alert("📋 הנתונים נקלטו! בהמשך זה יישלח אוטומטית לגוגל שיטס.");
-      // כאן נוסיף בהמשך fetch ל-Apps Script
+
+      const data = {
+        date: document.getElementById("date").value,
+        inspector: document.getElementById("inspector").value,
+        station: document.getElementById("station").value,
+        status: document.getElementById("status").value,
+        notes: document.getElementById("notes").value,
+      };
+
+      fetch("https://script.google.com/macros/s/AKfycbwZZhG1biv3mGWiC-HKEsdnZqQC5DSXvhIIbnK_dTFE-iKRdzkVH8tycpaUxAeT5Rn_Gw/exec", {
+        method: "POST",
+        body: JSON.stringify(data),
+        headers: {
+          "Content-Type": "application/json",
+        },
+      })
+      .then(response => response.text())
+      .then(result => {
+        alert("✅ הבדיקה נשמרה בהצלחה!");
+        document.getElementById("fireCheckForm").reset();
+        document.getElementById("date").value = today;
+        document.getElementById("station").value = stationId;
+      })
+      .catch(error => {
+        alert("❌ שגיאה בשליחה: " + error);
+      });
     });
   </script>
 </body>
