@@ -2,7 +2,7 @@
 <html lang="he" dir="rtl">
 <head>
   <meta charset="UTF-8">
-  <title>בדיקת עמדת אש</title>
+  <title>טופס בדיקת עמדת אש</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -71,11 +71,13 @@
     // תאריך נוכחי
     const today = new Date().toISOString().split('T')[0];
     document.getElementById("date").value = today;
+    console.log("📅 תאריך:", today);
 
     // מזהה עמדה מה-URL
     const urlParams = new URLSearchParams(window.location.search);
     const stationId = urlParams.get("station") || "לא צוינה";
     document.getElementById("station").value = stationId;
+    console.log("📍 מזהה עמדה:", stationId);
 
     // שליחת הטופס
     document.getElementById("fireCheckForm").addEventListener("submit", function(e) {
@@ -89,21 +91,28 @@
         notes: document.getElementById("notes").value,
       };
 
-      fetch("https://script.google.com/macros/s/AKfycbxjfVMkixhCpWkderEFoYNK0I9iApHsS6Qrxxf0p1_2skmudarr1Yjo6dYc9aKznwowPA/exec", {
+      console.log("🚀 שולח את הנתונים הבאים:", data);
+
+      fetch("https://script.google.com/macros/s/AKfycbya_stlMc8NM5jHH2GfaNwEd-RkTmNl6pbO1afEHYwGmDlQOgjiwWt2NSQv248swMY9/exec", {
         method: "POST",
         body: JSON.stringify(data),
         headers: {
           "Content-Type": "application/json",
         },
       })
-      .then(response => response.text())
+      .then(response => {
+        console.log("📬 תגובת השרת:", response);
+        return response.text();
+      })
       .then(result => {
+        console.log("✅ תוצאה מהשרת:", result);
         alert("✅ הבדיקה נשמרה בהצלחה!");
         document.getElementById("fireCheckForm").reset();
         document.getElementById("date").value = today;
         document.getElementById("station").value = stationId;
       })
       .catch(error => {
+        console.error("❌ שגיאה בשליחה:", error);
         alert("❌ שגיאה בשליחה: " + error);
       });
     });
