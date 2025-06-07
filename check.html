@@ -5,12 +5,9 @@
   <title>Tapash - ניהול בדיקות אש</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/11.9.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/11.9.0/firebase-firestore-compat.js"></script>
-  <!-- html5-qrcode לסריקת QR -->
   <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
-  <!-- אייקונים (Font Awesome) -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 
   <style>
@@ -26,11 +23,11 @@
       --bg-white: #ffffff;
       --border-color: #b5e4e3;
       --success-color: #27b254;
-      --success-bg: #defde0;
+      --success-bg: #eaf8ee;
       --error-color: #ec5050;
-      --error-bg: #ffe7df;
+      --error-bg: #fff0f0;
       --note-color: #1976d2;
-      --note-bg: #e2f0fb;
+      --note-bg: #eaf3fb;
       --shadow-color: rgba(20, 80, 150, 0.17);
       --font-main: 'Heebo', 'Segoe UI', Arial, sans-serif;
     }
@@ -257,7 +254,7 @@
       background: var(--success-color); 
       color: var(--text-light); 
     }
-    .modal .btns button[type="button"] { 
+    .modal .btns button.cancel-btn { 
       background: #eee; 
       color: #555; 
     }
@@ -283,11 +280,18 @@
     
     /* --- עיצוב חדש לדוח --- */
     #report-modal .modal {
-        max-width: 650px; /* רחב יותר כדי להכיל את הטבלה */
+        max-width: 800px; /* רחב יותר כדי להכיל את הטבלה */
+        max-height: 85vh; /* גובה מקסימלי למניעת גלישה מהמסך */
+        display: flex;
+        flex-direction: column;
+    }
+    #report-content {
+        overflow-y: auto; /* מאפשר גלילה רק לתוכן הדוח */
     }
     #report-header {
         text-align: center;
         margin-bottom: 1.5rem;
+        padding: 0 1rem;
     }
     #report-date {
         font-size: 1.5em;
@@ -312,8 +316,20 @@
         background-color: var(--note-bg);
         color: var(--note-color);
         font-weight: 700;
+        position: sticky; /* מקפיא את הכותרות למעלה בזמן גלילה */
+        top: 0;
     }
-
+    #report-table tbody tr:nth-child(even) {
+        background-color: var(--bg-light);
+    }
+    #report-modal .btns button.print-btn {
+        background: var(--note-color);
+        color: var(--text-light);
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+    
     /* התאמה למסכים קטנים */
     @media (max-width: 630px) {
       .container { 
@@ -343,6 +359,36 @@
         font-size: 1.25em; 
       }
     }
+    
+    /* עיצוב להדפסה */
+    @media print {
+      body {
+        background: none;
+      }
+      .container, .modal-bg:not(#report-modal), #report-modal .btns {
+        display: none !important;
+      }
+      #report-modal {
+        display: block;
+        position: static;
+        background: none;
+        backdrop-filter: none;
+      }
+      #report-modal .modal {
+        box-shadow: none;
+        border: 1px solid #ccc;
+        border-radius: 0;
+        max-width: 100%;
+        max-height: none;
+        padding: 1rem;
+      }
+      #report-content {
+        overflow-y: visible;
+      }
+      #report-table th {
+        position: static;
+      }
+    }
   </style>
 </head>
 <body>
@@ -368,13 +414,24 @@
       </button>
     </div>
   </div>
+  
+  <div class="modal-bg" id="name-prompt-modal">
+    <div class="modal">
+      <form id="namePromptForm">
+        <h3>שם הבודק</h3>
+        <label for="inspectorNameInput">אנא הזן את שמך המלא:</label>
+        <input type="text" id="inspectorNameInput" required>
+        <div class="btns">
+          <button type="submit">התחל בדיקה</button>
+        </div>
+      </form>
+    </div>
+  </div>
 
-  <!-- מודל לטופס בדיקה -->
   <div class="modal-bg" id="modalBG">
     <div class="modal">
       <form id="modalForm">
         <h3 id="modalTitle"></h3>
-        <!-- השדות החבויים חשובים עבור הנתונים שנשמרים -->
         <input type="hidden" id="modalDate">
         <input type="hidden" id="modalStation">
         
@@ -392,50 +449,53 @@
         
         <div class="btns">
           <button type="submit">שמור ושלח</button>
-          <button type="button" onclick="closeModal()">ביטול</button>
+          <button type="button" class="cancel-btn" onclick="closeModal()">ביטול</button>
         </div>
       </form>
     </div>
   </div>
 
-  <!-- מודל סריקת QR -->
   <div class="modal-bg" id="qr-modal">
     <div class="modal">
       <h3 id="qr-title">סרוק ברקוד עמדה</h3>
       <div id="qr-reader"></div>
       <div id="qr-error"></div>
       <div class="btns">
-        <button type="button" onclick="closeQRModal()">ביטול</button>
+        <button type="button" class="cancel-btn" onclick="closeQRModal()">ביטול</button>
       </div>
     </div>
   </div>
   
-  <!-- מודל דוח יומי -->
   <div class="modal-bg" id="report-modal">
       <div class="modal">
-        <div id="report-header">
-            <div id="report-date"></div>
-            <div id="report-day"></div>
+        <div id="report-content">
+            <div id="report-header">
+                <div id="report-date"></div>
+                <div id="report-day"></div>
+            </div>
+            <table id="report-table">
+                <thead>
+                    <tr>
+                        <th>עמדה</th>
+                        <th>סטטוס</th>
+                        <th>שם הבודק</th>
+                        <th>הערות</th>
+                    </tr>
+                </thead>
+                <tbody id="reportTableBody"></tbody>
+            </table>
         </div>
-        <table id="report-table">
-            <thead>
-                <tr>
-                    <th>עמדה</th>
-                    <th>סטטוס</th>
-                    <th>שם הבודק</th>
-                    <th>הערות</th>
-                </tr>
-            </thead>
-            <tbody id="reportTableBody"></tbody>
-        </table>
         <div class="btns">
-            <button type="button" onclick="closeReportModal()">סגור</button>
+            <button type="button" class="print-btn" onclick="window.print()">
+              <i class="fa-solid fa-print"></i> הדפס או שמור כ-PDF
+            </button>
+            <button type="button" class="cancel-btn" onclick="closeReportModal()">סגור</button>
         </div>
       </div>
   </div>
 
   <script type="module">
-    // --- קונפיג Firebase שלך (לפי מה ששלחת) ---
+    // --- קונפיג Firebase ---
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.9.0/firebase-app.js";
     import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, query, where } from "https://www.gstatic.com/firebasejs/11.9.0/firebase-firestore.js";
 
@@ -451,7 +511,7 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    // --- רשימת כל העמדות + הדרישות שלהן ---
+    // --- רשימת כל העמדות + הדרישות שלהן (לא לשנות!) ---
 /* ===== stations – עמדות ודרישות בדיוק לפי הטופס ===== */
 const stations = [
   { name: "קומה 9- מרפסת שיזוף כניסה ראשית", requirements: "2 מטפים, 2 זרנוקים, 1 גלגלון, 1 מזנק קטן, 1 מזנק גדול" },
@@ -490,7 +550,7 @@ const stations = [
   { name: "אקאשה עמדה אזור בר אורגני", requirements: "2 מטפים, 2 זרנוקים, 1 גלגלון, 1 מזנק קטן, 1 מזנק גדול" },
   { name: "אקאשה עמדת חדר כושר", requirements: "1 מטפים, 2 זרנוקים, 1 גלגלון, 1 מזנק קטן, 1 מזנק גדול" },
   { name: "אקאשה משמאל לחדר טיפולים 2 (ליד חדר צוות)", requirements: "2 מטפים, 2 זרנוקים, 1 גלגלון, 1 מזנק קטן, 1 מזנק גדול" },
-  { name: "קומהL1 ליד חדר 115", requirements: "2 מטפים, 2 זרנוקים, 1 גלגלון, 1 מזנק קטן, 1 מזנק גדול" },
+  { name: "קומה L1 ליד חדר 115", requirements: "2 מטפים, 2 זרנוקים, 1 גלגלון, 1 מזנק קטן, 1 מזנק גדול" },
   { name: "קומת כניסה ליד גלריה", requirements: "2 מטפים, 2 זרנוקים, 1 גלגלון, 1 מזנק קטן, 1 מזנק גדול" },
   { name: "קומה L1 על יד שירותי אורחים", requirements: "2 מטפים, 2 זרנוקים, 1 גלגלון, 1 מזנק קטן, 1 מזנק גדול" },
   { name: "טרקלין עסקים מחשבים", requirements: "0 מטפים, 2 זרנוקים, 0 גלגלונים, 0 מזנק קטן, 1 מזנק גדול" },
@@ -522,12 +582,25 @@ const stations = [
     let editingDocId = null;
     let currentScanStation = null;
     let html5Qr = null;
+    let currentInspectorName = ""; //  משתנה גלובלי לשמירת שם הקב"ט
 
     // --- מאזינים לאירועים ---
     document.getElementById('start-btn').onclick = () => {
-      document.getElementById('stationsBlock').style.display = 'block';
-      renderStationsTable();
-      document.getElementById('start-btn').style.display = 'none';
+      document.getElementById('name-prompt-modal').classList.add('active');
+    };
+
+    document.getElementById('namePromptForm').onsubmit = (e) => {
+        e.preventDefault();
+        const inspectorName = document.getElementById('inspectorNameInput').value.trim();
+        if(inspectorName){
+            currentInspectorName = inspectorName;
+            document.getElementById('name-prompt-modal').classList.remove('active');
+            document.getElementById('stationsBlock').style.display = 'block';
+            renderStationsTable();
+            document.getElementById('start-btn').style.display = 'none';
+        } else {
+            alert("יש להזין שם בודק.");
+        }
     };
 
     document.getElementById('modalForm').onsubmit = handleFormSubmit;
@@ -540,7 +613,6 @@ const stations = [
       tbody.innerHTML = "<tr><td colspan='3'>טוען נתונים...</td></tr>";
       const today = new Date().toISOString().split('T')[0];
 
-      // שליפת הבדיקות שכבר בוצעו מהיום
       const checksSnap = await getDocs(query(collection(db, "fire_checks"), where("date", "==", today)));
       const checks = {};
       checksSnap.forEach(docSnap => {
@@ -548,7 +620,7 @@ const stations = [
         checks[d.station] = { ...d, docId: docSnap.id };
       });
 
-      tbody.innerHTML = ""; // מנקה לפני רינדור מחדש
+      tbody.innerHTML = "";
       stations.forEach(station => {
         const check = checks[station.name];
         let statusCell = `<span class="status-chip status-note"><i class="fa fa-clock"></i> לא בוצע</span>`;
@@ -622,31 +694,27 @@ const stations = [
       document.getElementById('modalTitle').innerText = "בדיקת עמדה: " + station;
       document.getElementById('modalDate').value = new Date().toISOString().split('T')[0];
       document.getElementById('modalStation').value = station;
-      document.getElementById('modalInspector').value = editData ? editData.inspector : "";
+      // מילוי אוטומטי של שם הבודק
+      document.getElementById('modalInspector').value = editData ? editData.inspector : currentInspectorName;
       document.getElementById('modalStatus').value = editData ? editData.status : "כן";
       document.getElementById('modalNotes').value = editData ? editData.notes : "";
-      // מעלה טקסט עם דרישות העמדה (כמות מטפים וכו') מעל השדות:
+      
       const stationObj = stations.find(s => s.name === station);
       if (stationObj) {
-        // מוסיף באופן דינמי <p> עם הדרישות לפני הכותרת של המודל
         let reqElem = document.getElementById('station-requirements');
         if (!reqElem) {
           reqElem = document.createElement('p');
           reqElem.id = 'station-requirements';
-          reqElem.style.marginTop = '0';
-          reqElem.style.marginBottom = '1rem';
-          reqElem.style.color = 'var(--note-color)';
-          reqElem.style.fontWeight = '600';
+          reqElem.style.cssText = "margin-top:0; margin-bottom:1rem; color:var(--note-color); font-weight:600; text-align:center;";
           document.querySelector('#modalForm h3').insertAdjacentElement('afterend', reqElem);
         }
-        reqElem.innerText = `בעמדה זו אמורים להיות: ${stationObj.requirements}`;
+        reqElem.innerText = `דרישות ציוד: ${stationObj.requirements}`;
       }
       document.getElementById('modalBG').classList.add('active');
     }
     
     window.closeModal = function() {
       document.getElementById('modalBG').classList.remove('active');
-      // מסיר את הפסקה של הדרישות מהמודל
       const reqElem = document.getElementById('station-requirements');
       if (reqElem) reqElem.remove();
       editingDocId = null;
@@ -669,7 +737,6 @@ const stations = [
         { facingMode: "environment" },
         { fps: 15, qrbox: { width: 250, height: 250 } },
         (decodedText) => {
-          // כאן בודקים שהטקסט המתקבל מהברקוד תואם למילה stationName בדיוק
           if (decodedText === currentScanStation) {
             html5Qr.stop().then(() => {
               closeQRModal();
@@ -679,7 +746,7 @@ const stations = [
             document.getElementById('qr-error').innerText = "❌ ברקוד לא נכון לעמדה זו!";
           }
         },
-        (errorMessage) => { /* שגיאות קטנות, מתעלמים */ }
+        (errorMessage) => { /* מתעלמים משגיאות קטנות */ }
       ).catch(err => {
         document.getElementById('qr-error').innerText = "לא ניתן להפעיל מצלמה. יש לאשר הרשאות.";
       });
@@ -692,7 +759,7 @@ const stations = [
       document.getElementById('qr-modal').classList.remove('active');
     }
 
-    // --- פונקציונליות חדשה: יצירת דוח יומי ---
+    // --- יצירת דוח יומי ---
 
     async function generateReport() {
         const today = new Date();
@@ -705,7 +772,6 @@ const stations = [
         const tbody = document.getElementById('reportTableBody');
         tbody.innerHTML = "<tr><td colspan='4'>מכין דוח...</td></tr>";
 
-        // מוציאים את כל הבדיקות שבוצעו היום
         const checksSnap = await getDocs(query(collection(db, "fire_checks"), where("date", "==", dateString)));
         const checks = {};
         checksSnap.forEach(docSnap => {
@@ -731,7 +797,7 @@ const stations = [
             tbody.innerHTML += `
                 <tr>
                     <td>${station.name}</td>
-                    <td>${status}</td>
+                    <td><span class="status-chip ${check ? (check.status === 'כן' ? 'status-ok' : 'status-bad') : 'status-note'}">${status}</span></td>
                     <td>${inspector}</td>
                     <td>${notes}</td>
                 </tr>
